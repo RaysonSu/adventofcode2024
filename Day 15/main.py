@@ -4,46 +4,17 @@ from functools import *
 from itertools import *
 from math import *
 
-def split_input(inp: list[str]) -> tuple[list[int], list[int]]:
-    numbers = [list(map(int, row.split("   "))) for row in inp]
-    left = [row[0] for row in numbers]
-    right = [row[1] for row in numbers]
-
-    return left, right
-
-
 def main_part_1(inp: list[str]) -> int:
-    left, right = split_input(inp)
-
-    left.sort()
-    right.sort()
-
-    ret = 0
-    for l, r in zip(left, right):
-        ret += abs(l - r)
-    
-    return ret
+    return 0
 
 def main_part_2(inp: list[str]) -> int:
-    left, right = split_input(inp)
-
-    ret = 0
-    for i in left:
-        ret += i * right.count(i)
-    
-    return ret
+    return 0
 
 def main() -> None:
-    test_input = """3   4
-4   3
-2   5
-1   3
-3   9
-3   3
-"""
+    test_input = """"""
     test_input_parsed = test_input.splitlines()
-    test_output_part_1_expected = 11
-    test_output_part_2_expected = 31
+    test_output_part_1_expected = 0
+    test_output_part_2_expected = 0
 
     file_location = os.path.dirname(os.path.realpath(__file__))
     file_location = file_location + "/input.txt"

@@ -62,7 +62,7 @@ def main() -> None:
     file_location = os.path.dirname(os.path.realpath(__file__))
     file_location = file_location + "/input.txt"
     with open(file_location, "r") as file:
-        input_file = file.readlines()
+        input_file = file.read().splitlines()
 
     test_output_part_1 = main_part_1(test_input_parsed)
     test_output_part_2 = main_part_2(test_input_parsed)
