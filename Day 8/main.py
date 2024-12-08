@@ -5,17 +5,6 @@ from itertools import *
 from math import *
 from typing import Any
 
-def is_valid_location(x: int, y: int, 
-                      antenna_locations: dict[Any, list[tuple[int, int]]]) -> bool:
-
-    for locations in antenna_locations.values():
-        for p1, p2 in permutations(locations, 2):
-            if (p2[1] - p1[1]) * (x - p1[0]) \
-            == (y - p1[1]) * (p2[0] - p1[0]) : # modified version of the gradient formula
-                return True
-    
-    return False
-
 def main_part_1(inp: list[str]) -> int:
     antenna_locations: dict[str, list[tuple[int, int]]] = defaultdict(lambda:[])
     
@@ -43,13 +32,31 @@ def main_part_2(inp: list[str]) -> int:
         for x, char in enumerate(row):
             if char != ".":
                 antenna_locations[char].append((x, y))
+    
+    antinodes: set[tuple[int, int]] = set()
+    for locations in antenna_locations.values():
+        for (x1, y1), (x2, y2) in combinations(locations, 2):
+            dx = x2 - x1
+            dy = y2 - y1
+            
+            div = gcd(dx, dy)
+            
+            dx //= div
+            dy //= div
 
-    antinodes = 0
-    for x, y in product(range(len(inp[0])), range(len(inp))):
-        if is_valid_location(x, y, antenna_locations):
-            antinodes += 1
+            lb = max(min(-trunc(x1 / dx), trunc((len(inp[0]) - 1 - x1) / dx)),
+                     min(-trunc(y1 / dy), trunc((len(inp) - 1 - y1) / dy)))
 
-    return antinodes
+            ub = min(max(-trunc(x1 / dx), trunc((len(inp[0]) - 1 - x1) / dx)),
+                     max(-trunc(y1 / dy), trunc((len(inp) - 1 - y1) / dy)))
+            
+            for i in range(lb, ub + 1):
+                antinodes.add((
+                    x1 + dx * i,
+                    y1 + dy * i
+                ))
+
+    return len(antinodes)
 
 def main() -> None:
     test_input = """............
