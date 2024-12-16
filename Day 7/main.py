@@ -16,7 +16,8 @@ def is_possible(target: int, values: list[int], allow_concat: bool = False) -> b
 
     return is_possible(target - current, remaining, allow_concat) \
     or (target % current == 0 and is_possible(target // current, remaining, allow_concat)) \
-    or (allow_concat and str(target).endswith(str(current)) and target != current and is_possible(int(str(target)[:-len(str(current))]), remaining, allow_concat))
+    or (allow_concat and str(target).endswith(str(current)) and target != current \
+        and is_possible(int(str(target)[:-len(str(current))]), remaining, allow_concat))
 
 def main_part_1(inp: list[str]) -> int:
     total = 0
