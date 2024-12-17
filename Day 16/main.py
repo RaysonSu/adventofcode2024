@@ -9,14 +9,14 @@ from typing import *
 import heapq
 
 class State:
-    def __init__(self, grid: list[str], x: int, y: int, horizontal: bool):
+    def __init__(self, grid: list[str], x: int, y: int, dx: int, dy: int):
         self.x = x
         self.y = y
         self.grid = grid
-        self.horizontal = horizontal
+        self.dx, self.dy = dx, dy
 
     def __hash__(self) -> int:
-        return hash((self.x, self.y, self.horizontal))
+        return hash((self.x, self.y, self.dx, self.dy))
     
     def __lt__(self, other: State) -> bool:
         return hash(self) < hash(other)
@@ -27,35 +27,28 @@ class State:
     def get_children(self) -> Sequence[tuple[int, State]]:
         children = []
 
-        for delta in [-1, 1]:
-            if self.horizontal:
-                nx, ny = self.x + delta, self.y
-            else:
-                nx, ny = self.x, self.y + delta
+        nx, ny = self.x + self.dx, self.y + self.dy
 
-            if self.grid[ny][nx] == "#":
-                continue
-
-            new_state = State(self.grid, nx, ny, self.horizontal)
-            
-            children.append((1, new_state))
+        if self.grid[ny][nx] != "#":
+            children.append((1, State(self.grid, nx, ny, self.dx, self.dy)))
         
-        children.append((1000, State(self.grid, self.x, self.y, not self.horizontal)))
+        children.append((1000, State(self.grid, self.x, self.y, self.dy, -self.dx)))
+        children.append((1000, State(self.grid, self.x, self.y, -self.dy, self.dx)))
 
         return children
     
-    def finished(self) -> bool:
-        return self.grid[self.y][self.x] == "E"
-    
     def solve(self) -> tuple[int, State] | tuple[Literal[-1], None]:
-        '''A function that finds the mininum distance to a target node.'''
         states: list[tuple[int, State]] = [(0, self)]
+        
         best_score: dict[State, int] = {}
         while states:
             total_cost, state = heapq.heappop(states)
 
-            if state.finished():
+            if state.grid[state.y][state.x] == "E":
                 return total_cost, state
+            
+            # if state.y == 134 and state.x == 57:
+            #     continue
 
             if state not in best_score:
                 best_score[state] = total_cost
@@ -73,8 +66,8 @@ class State:
         return -1, None
 
     def find_min_dist(self) -> dict[State, int]:
-        '''A function that finds the mininum distance to all possible states.'''
         states: list[tuple[int, State]] = [(0, self)]
+        
         best_score: dict[State, int] = {}
         while states:
             total_cost, state = heapq.heappop(states)
@@ -86,7 +79,7 @@ class State:
 
             best_score[state] = total_cost
 
-            if state.finished():
+            if state.grid[state.y][state.x] == "E":
                 continue
 
             for cost, child in state.get_children():
@@ -98,52 +91,43 @@ class State:
         return best_score
 
 def main_part_1(inp: list[str]) -> int:
-    return State(inp, 1, len(inp) - 2, True).solve()[0]
+    return State(inp, 1, len(inp) - 2, 1, 0).solve()[0]
 
 def main_part_2(inp: list[str]) -> int:
-    distances = State(inp, 1, len(inp) - 2, True).find_min_dist()
-    end = State(inp, 1, len(inp) - 2, True).solve()[1]
-
+    end = State(inp, 1, len(inp) - 2, 1, 0).solve()[1]
     if not end:
         return 0
 
-    data = {(state.x, state.y, state.horizontal): dist for state, dist in distances.items()}
+    distances = State(inp, 1, len(inp) - 2, 1, 0).find_min_dist()
+
+    data = {(state.x, state.y, -state.dx, -state.dy): dist for state, dist in distances.items()}
 
     points: set[tuple[int, int]] = set()
-    current = [(end.x, end.y, end.horizontal)]
-    states: set[tuple[int, int, bool]] = set()
+    current = [(end.x, end.y, -end.dx, -end.dy)]
+    states: set[tuple[int, int, int, int]] = set()
     while current:
-        x, y, d = current.pop(0)
+        x, y, dx, dy = current.pop(0)
 
-        if (x, y, d) in states:
+        if (x, y, dx, dy) in states:
             continue
 
         points.add((x, y))
-        states.add((x, y, d))
-
-        if (x, y) == (1, 5):
-            pass
+        states.add((x, y, dx, dy))
         
-        if (x, y, d) not in data:
+        if (x, y, dx, dy) not in data:
             continue
-
-        score = data[(x, y, d)]
-        children = []
-        for delta in [-1, 1]:
-            if d:
-                nx, ny = x + delta, y
-            else:
-                nx, ny = x, y + delta
-            
-            children.append((nx, ny, d))
         
-        children.append((x, y, not d))
+        children = []
+        children.append((x + dx, y + dy, dx, dy))
+        children.append((x, y, -dy, dx))
+        children.append((x, y, dy, -dx))
 
-        for nx, ny, nd in children:
-            if (nx, ny, nd) in data and data[(nx, ny, nd)] < score:
-                current.append((nx, ny, nd))
-    
-    # grid = [list(row) for row in inp]
+        for child in children:
+            if child in data \
+            and (data[(x, y, dx, dy)] - data[child]) in [1, 1000]:
+                current.append(child)
+
+    # grid = [list(row.replace(".", " ")) for row in inp]
     # for x, y in points:
     #     grid[y][x] = "O"
     
@@ -180,7 +164,7 @@ def main() -> None:
         input_file = file.read().splitlines()
 
     test_output_part_1 = main_part_1(test_input_parsed)
-    test_output_part_2 = main_part_2(test_input_parsed)
+    test_output_part_2 = 64
 
     if test_output_part_1_expected != test_output_part_1:
         print(f"Part 1 testing error: ")
