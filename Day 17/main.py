@@ -54,15 +54,20 @@ def main_part_1(inp: list[str]) -> str:
 def main_part_2(inp: list[str]) -> int:
     program = eval("[" + inp[-1][9:] + "]")
 
-    a = 0
-    for digit in program[::-1]:
-        for guess in range(8):
-            attempt = (a << 3) + guess
-            if run_program(program, attempt, 0, 0)[0] == digit:
-                a = attempt
-                break
-    
-    return a
+    guess = [0]
+    while True:
+        value = reduce(lambda a, b: (a << 3) + b, guess)
+        result = run_program(program, value, 0, 0)
+        
+        if result[-len(guess):] != program[-len(guess):]:
+            while guess[-1] == 7:
+                guess.pop()
+            
+            guess[-1] += 1
+        elif result == program:
+            return value
+        else:
+            guess.append(0)
 
 
 def main() -> None:
