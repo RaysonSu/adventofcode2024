@@ -4,17 +4,53 @@ from functools import *
 from itertools import *
 from math import *
 
+def get_next(x: int) -> int:
+    x ^= x << 6
+    x &= 0xffffff
+    x ^= x >> 5
+    x &= 0xffffff
+    x ^= x << 11
+    x &= 0xffffff
+    return x
+
 def main_part_1(inp: list[str]) -> int:
-    return 0
+    total = 0
+    for row in inp:
+        magic = int(row)
+        for _ in range(2000):
+            magic = get_next(magic)
+        total += magic
+    return total
 
 def main_part_2(inp: list[str]) -> int:
-    return 0
+    seqs: dict[tuple[int, ...], int] = defaultdict(lambda: 0)
+
+    for row in inp:
+        magic = int(row)
+        seen: set[tuple[int, ...]] = set()
+        buffer: tuple[int, ...] = tuple()
+
+        for _ in range(2000):
+            previous_magic = magic
+            magic = get_next(magic)
+        
+            buffer += (magic % 10 - previous_magic % 10,)
+            buffer = buffer[-4:]
+
+            if buffer not in seen and len(buffer) == 4:
+                seqs[buffer] += magic % 10
+                seen.add(buffer)
+    
+    return max(seqs.values())
 
 def main() -> None:
-    test_input = """"""
+    test_input = """1
+10
+100
+2024"""
     test_input_parsed = test_input.splitlines()
-    test_output_part_1_expected = 0
-    test_output_part_2_expected = 0
+    test_output_part_1_expected = 37327623
+    test_output_part_2_expected = 24
 
     file_location = os.path.dirname(os.path.realpath(__file__))
     file_location = file_location + "/input.txt"
